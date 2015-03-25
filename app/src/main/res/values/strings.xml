@@ -2,7 +2,9 @@
 <resources>
 
     <string name="app_name">Dining Dollars</string>
-    <string name="hello_world">Hello world!</string>
-    <string name="action_settings">Settings</string>
+    <string name="action_settings">Edit Account Info</string>
+    <string name="current_balance">Current Balance: </string>
+    <string name="semester_start">Semester Start Date</string>
+    <string name="semester_end">Semester End Date</string>
 
 </resources>

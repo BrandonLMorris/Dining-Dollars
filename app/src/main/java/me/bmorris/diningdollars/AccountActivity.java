@@ -1,17 +1,15 @@
 package me.bmorris.diningdollars;
 
 import android.app.Activity;
-import android.content.Intent;
-import android.support.v4.app.Fragment;
-import android.support.v4.app.FragmentManager;
-import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
-import android.widget.Toast;
+import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentActivity;
+import android.support.v4.app.FragmentManager;
 
-
-public class HomeActivity extends ActionBarActivity implements HomeFragment.OnAccountInfoSelectedListener {
-
-
+/**
+ * Created by bmorris on 3/25/15.
+ */
+public class AccountActivity extends FragmentActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -22,15 +20,8 @@ public class HomeActivity extends ActionBarActivity implements HomeFragment.OnAc
         Fragment fragment = fm.findFragmentById(R.id.fragmentContainer);
 
         if (fragment == null) {
-            fragment = new HomeFragment();
+            fragment = new AccountFragment();
             fm.beginTransaction().add(R.id.fragmentContainer, fragment).commit();
         }
     }
-
-    public void onAccountInfoSelected() {
-        Toast.makeText(getApplicationContext(), "WHOOP WHOOP", Toast.LENGTH_SHORT).show();
-        Intent i = new Intent(this, AccountActivity.class);
-        startActivity(i);
-    }
-
 }
