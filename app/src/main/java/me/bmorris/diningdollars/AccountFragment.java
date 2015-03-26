@@ -33,16 +33,16 @@ public class AccountFragment extends Fragment {
             @Override
             public void beforeTextChanged(CharSequence s, int start, int count, int after) {
                 // This space intentionally left blank
+                //mBalanceEdit.setText(String.format("%.2f", sAccount.getBalance()));
             }
 
             @Override
             public void onTextChanged(CharSequence s, int start, int before, int count) {
-
             }
 
             @Override
             public void afterTextChanged(Editable s) {
-
+                sAccount.setBalance(Float.parseFloat(s.toString()));
             }
         });
 

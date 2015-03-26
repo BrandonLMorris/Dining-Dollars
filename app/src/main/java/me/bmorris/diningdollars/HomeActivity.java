@@ -6,6 +6,7 @@ import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
+import android.util.Log;
 import android.widget.Toast;
 
 
@@ -25,6 +26,14 @@ public class HomeActivity extends ActionBarActivity implements HomeFragment.OnAc
             fragment = new HomeFragment();
             fm.beginTransaction().add(R.id.fragmentContainer, fragment).commit();
         }
+    }
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+        Log.i("HomeActivity", "onStart() called");
+        HomeFragment hf = (HomeFragment) getSupportFragmentManager().findFragmentById(R.id.fragmentContainer);
+        hf.updateUI();
     }
 
     public void onAccountInfoSelected() {

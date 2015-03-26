@@ -30,6 +30,7 @@ public class HomeFragment extends Fragment {
         } catch (ClassCastException e) {
             throw new ClassCastException(activity.toString() + " must implement OnAccountInfoSelectedListener");
         }
+
     }
 
     @Override
@@ -71,5 +72,10 @@ public class HomeFragment extends Fragment {
     public interface OnAccountInfoSelectedListener {
         //Container activity must implement this interface
         public void onAccountInfoSelected();
+    }
+
+    public void updateUI() {
+        mBalanceView = (TextView) getView().findViewById(R.id.balance_display);
+        mBalanceView.setText(String.format("$%.2f", sAccountInfo.getBalance()));
     }
 }
