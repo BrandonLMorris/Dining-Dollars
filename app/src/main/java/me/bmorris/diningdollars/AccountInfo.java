@@ -48,6 +48,22 @@ public class AccountInfo {
         return json;
     }
 
+    public void updateBalance(JSONObject json) throws JSONException {
+        if (json.has(JSON_STARTDATE)) {
+            String dateStr = json.getString(JSON_STARTDATE);
+            // Todo: Parse the string to a new date
+
+        }
+        if (json.has(JSON_ENDDATE)) {
+            String dateStr = json.getString(JSON_ENDDATE);
+            // Todo: Parse the string to a new date
+        }
+        if (json.has(JSON_BALANCE)) {
+            mBalance = Float.parseFloat(json.getString(JSON_BALANCE));
+        }
+    }
+
+
     public Date getStartDate() {
         return mStartDate;
     }

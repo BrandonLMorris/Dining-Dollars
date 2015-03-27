@@ -3,6 +3,7 @@ package me.bmorris.diningdollars;
 import android.app.Activity;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -11,14 +12,22 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 
+import org.json.JSONException;
+
+import java.io.IOException;
+
 /**
  * Created by bmorris on 3/15/15.
  * Fragment for containing the Home screen
  */
 public class HomeFragment extends Fragment {
+    private static final String ACCOUNT_FILE = "account.json";
+
     private TextView mBalanceView;
     private AccountInfo sAccountInfo;
     private OnAccountInfoSelectedListener mAccountListener;
+    private DiningDollarsJSONSerializer mSerializer;
+
 
     @Override
     public void onAttach(Activity activity) {
@@ -43,6 +52,7 @@ public class HomeFragment extends Fragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup parent, Bundle savedInstanceState) {
         View v = inflater.inflate(R.layout.fragment_home, parent, false);
         sAccountInfo = AccountInfo.get(getActivity());
+        mSerializer = new DiningDollarsJSONSerializer(getActivity(), ACCOUNT_FILE);
 
         mBalanceView = (TextView)v.findViewById(R.id.balance_display);
         mBalanceView.setText(String.format("$%.2f", sAccountInfo.getBalance()));
@@ -69,6 +79,25 @@ public class HomeFragment extends Fragment {
         return super.onOptionsItemSelected(item);
     }
 
+    @Override
+    public void onPause() {
+        super.onPause();
+        saveAccountBal();
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        Log.d(getTag(), "onResume called from fragment");
+        try {
+            mSerializer.loadBalance();
+            Log.d(getTag(), " balance successfully loaded");
+        } catch (Exception e) {
+            Log.d(getTag(), "Error loading the balance");
+        }
+        updateUI();
+    }
+
     public interface OnAccountInfoSelectedListener {
         //Container activity must implement this interface
         public void onAccountInfoSelected();
@@ -78,4 +107,17 @@ public class HomeFragment extends Fragment {
         mBalanceView = (TextView) getView().findViewById(R.id.balance_display);
         mBalanceView.setText(String.format("$%.2f", sAccountInfo.getBalance()));
     }
+
+    public void saveAccountBal() {
+        DiningDollarsJSONSerializer serializer = new DiningDollarsJSONSerializer(getActivity(), ACCOUNT_FILE);
+        try {
+            serializer.saveAccountBalance(sAccountInfo.toJSON());
+            Log.i(getTag(), "Successfully saved balance to JSON file");
+        } catch (Exception e) {
+            Log.d(getTag(), "Error saving balance to JSON file");
+            e.printStackTrace();
+        }
+    }
+
+
 }
