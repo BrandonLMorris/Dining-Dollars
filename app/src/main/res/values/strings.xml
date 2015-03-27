@@ -6,5 +6,6 @@
     <string name="current_balance">Current Balance: </string>
     <string name="semester_start">Semester Start Date</string>
     <string name="semester_end">Semester End Date</string>
+    <string name="save">Save</string>
 
 </resources>
