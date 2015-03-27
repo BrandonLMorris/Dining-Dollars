@@ -10,18 +10,22 @@ import android.util.Log;
 import android.widget.Toast;
 
 
-public class HomeActivity extends ActionBarActivity implements HomeFragment.OnAccountInfoSelectedListener {
-
+public class HomeActivity extends ActionBarActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+
+        // Call the onCreate of our forefathers.
         super.onCreate(savedInstanceState);
+
+        // Set the layout of the generic fragment-holder.
         setContentView(R.layout.activity_generic);
 
         // Get the fragment manager to add fragment
         FragmentManager fm = getSupportFragmentManager();
         Fragment fragment = fm.findFragmentById(R.id.fragmentContainer);
 
+        // Set the fragment if nonexistent (like unicorns).
         if (fragment == null) {
             fragment = new HomeFragment();
             fm.beginTransaction().add(R.id.fragmentContainer, fragment).commit();
@@ -31,15 +35,10 @@ public class HomeActivity extends ActionBarActivity implements HomeFragment.OnAc
     @Override
     protected void onStart() {
         super.onStart();
-        Log.i("HomeActivity", "onStart() called");
+
+        // Update the fragment UI whenever this activity starts (Really necessary?)
         HomeFragment hf = (HomeFragment) getSupportFragmentManager().findFragmentById(R.id.fragmentContainer);
         hf.updateUI();
-    }
-
-    public void onAccountInfoSelected() {
-        Toast.makeText(getApplicationContext(), "WHOOP WHOOP", Toast.LENGTH_SHORT).show();
-        Intent i = new Intent(this, AccountActivity.class);
-        startActivity(i);
     }
 
 }
