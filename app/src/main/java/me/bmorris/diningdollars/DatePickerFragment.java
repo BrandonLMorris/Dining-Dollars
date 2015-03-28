@@ -29,8 +29,8 @@ public class DatePickerFragment extends DialogFragment implements DatePickerDial
         int month = c.get(Calendar.MONTH);
         int year = c.get(Calendar.YEAR);
 
-        // Get the argument for which date is being set
-        mIsStartDate = getArguments().getBoolean(IS_START_ARG);
+        // Get the argument for which date is being set, semester start date by default
+        mIsStartDate = getArguments().getBoolean(IS_START_ARG, true);
 
         // Create a new instance of DatePickerDialog and return it
         return new DatePickerDialog(getActivity(), this, year, month, day);

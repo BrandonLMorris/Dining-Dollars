@@ -158,7 +158,16 @@ public class HomeFragment extends Fragment {
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         // If user saved the (new) balance, reset the balance value on this screen
         if (resultCode == Activity.RESULT_OK) {
+
+            // Get the account data via extras, if they exist
             mBalance = data.getDoubleExtra(AccountFragment.BALANCE_EXTRA, -999.99);
+            if (data.hasExtra(AccountFragment.START_DATE_EXTRA)) {
+                mStartDateString = data.getStringExtra(AccountFragment.START_DATE_EXTRA);
+            }
+            if (data.hasExtra(AccountFragment.END_DATE_EXTRA)) {
+                mEndDateString = data.getStringExtra(AccountFragment.END_DATE_EXTRA);
+            }
+
             updateUI();
         }
     }
@@ -166,7 +175,7 @@ public class HomeFragment extends Fragment {
     @Override
     public void onPause() {
         super.onPause();
-        saveAccountBalance();
+        saveAccountData();
     }
 
     @Override
@@ -203,11 +212,15 @@ public class HomeFragment extends Fragment {
      * Saves the account data to disk in SystemPreferences. To be used: Serailize the data into JSON
      * here
      */
-    public void saveAccountBalance() {
+    public void saveAccountData() {
         SharedPreferences sharedPref = getActivity().getPreferences(Context.MODE_PRIVATE);
         SharedPreferences.Editor editor = sharedPref.edit();
-        editor.putInt(BALANCE, (int)mBalance*100);
-        editor.commit();
+        editor.putInt(BALANCE, (int)(mBalance*100));
+        editor.putString(START_DATE, mStartDateString);
+        editor.putString(END_DATE, mEndDateString);
+
+        //IntelliJ wants me to use apply() instead of commit
+        editor.apply();
 //        DiningDollarsJSONSerializer serializer = new DiningDollarsJSONSerializer(getActivity(), ACCOUNT_FILE);
 //        try {
 //            serializer.saveAccountBalance(sAccountInfo.toJSON());

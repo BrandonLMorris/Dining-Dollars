@@ -197,8 +197,10 @@ public class AccountFragment extends Fragment {
     private void returnResult() {
         Intent result = new Intent();
 
-        // Put the balance value as extra into the intent
+        // Put the account values as extra into the intent
         result.putExtra(BALANCE_EXTRA, mBalance);
+        result.putExtra(START_DATE_EXTRA, mStartDateString);
+        result.putExtra(END_DATE_EXTRA, mEndDateString);
 
         // Set the intent's result as OK, and ship it back
         getActivity().setResult(Activity.RESULT_OK, result);
@@ -222,7 +224,7 @@ public class AccountFragment extends Fragment {
         // Set the date field based on which date was updated
         if (isStartDay) {
             // Build new string from arguments
-            mStartDateString = month + "/" + day + "/" + year;
+            mStartDateString = (month+1) + "/" + day + "/" + year;
 
             // Try parsing string into date, catch exception if fails
             try {
@@ -233,7 +235,7 @@ public class AccountFragment extends Fragment {
             }
         } else {
             // Build new string from arguments
-            mEndDateString = month + "/" + day + "/" + year;
+            mEndDateString = (month+1) + "/" + day + "/" + year;
 
             // Try parsing string into date, catch exception if fails
             try {
