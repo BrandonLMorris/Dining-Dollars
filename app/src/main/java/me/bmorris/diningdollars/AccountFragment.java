@@ -1,6 +1,7 @@
 package me.bmorris.diningdollars;
 
 import android.app.Activity;
+import android.support.v4.app.DialogFragment;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
@@ -47,6 +48,8 @@ public class AccountFragment extends Fragment {
     Button mSaveButton;
     TextView mStartDateView;
     TextView mEndDateView;
+    Button mStartDateEdit;
+    Button mEndDateEdit;
 
     /**
      * Singleton for holding account data. (UNUSED)
@@ -124,17 +127,39 @@ public class AccountFragment extends Fragment {
             }
         });
 
-        /**
-         * Start date reference.
-         */
+         /** Start date text reference */
         mStartDateView = (TextView) v.findViewById(R.id.start_date);
         mStartDateView.setText(mStartDateString);
 
         /**
-         * End date reference.
+         * Start date edit button reference. Set on-click listener to launch a date picker dialog
+         * to adjust the date.
          */
+        mStartDateEdit = (Button) v.findViewById(R.id.edit_start_state);
+        mStartDateEdit.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                DialogFragment newFragment = DatePickerFragment.newInstance(true);
+                newFragment.show(getActivity().getSupportFragmentManager(), "startDatePicker");
+            }
+        });
+
+        /** End date text reference. */
         mEndDateView = (TextView) v.findViewById(R.id.end_date);
         mEndDateView.setText(mEndDateString);
+
+        /**
+         * End date edit button reference. Set on-click listener to launch a date picker dialog
+         * to adjust the date
+         */
+        mEndDateEdit = (Button) v.findViewById(R.id.edit_end_date);
+        mEndDateEdit.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                DialogFragment newFragment = DatePickerFragment.newInstance(false);
+                newFragment.show(getActivity().getSupportFragmentManager(), "endDatePicker");
+            }
+        });
 
         /**
          * Save button reference and listener. Hitting the button will send the balance value as
@@ -181,4 +206,66 @@ public class AccountFragment extends Fragment {
         // "Always leave things cleaner than when you found them."
         getActivity().finish();
     }
+
+    /**
+     * Updates the String and Date member fields that represent semester start/end days for the
+     * account. Called by hosting activity as part of callbacks for the DatePicker Dialog. May
+     * throw ParseException if trouble converting String dates to Date objects.
+     * @param year      The year the updated date is being set to.
+     * @param month     The month the updated date is being set to.
+     * @param day       The day the updated date is being set to.
+     * @param isStartDay    Indicated if the date being updated is the semester start date (true)
+     *                      or the semester end date (false).
+     */
+    public void setDate(int year, int month, int day, boolean isStartDay) {
+
+        // Set the date field based on which date was updated
+        if (isStartDay) {
+            // Build new string from arguments
+            mStartDateString = month + "/" + day + "/" + year;
+
+            // Try parsing string into date, catch exception if fails
+            try {
+                mStartDate = dateFormat.parse(mStartDateString);
+            } catch (ParseException pe) {
+                Log.e("AccountFragment", "Error updating date: unable to parse mStartDateString");
+                pe.printStackTrace();
+            }
+        } else {
+            // Build new string from arguments
+            mEndDateString = month + "/" + day + "/" + year;
+
+            // Try parsing string into date, catch exception if fails
+            try {
+                mEndDate = dateFormat.parse(mEndDateString);
+            } catch (ParseException pe) {
+                Log.e("AccountFragment", "Error updating date: unable to parse mEndDateString");
+            }
+        }
+
+        // Update the UI to reflect the change
+        updateUI();
+    }
+
+
+    /**
+     * Updates the user interface to match the member field of the account. Helper function to
+     * ensure data matches its on-screen representation. Will not work if unable to get the
+     * view from the getView() function.
+     */
+    private void updateUI() {
+        // Obtain the view
+        View v = getView();
+
+        // Null check the view object to avoid NullPointerException
+        if (v != null) {
+            // Update both text fields
+            mStartDateView = (TextView) v.findViewById(R.id.start_date);
+            mStartDateView.setText(mStartDateString);
+
+            mEndDateView = (TextView) v.findViewById(R.id.end_date);
+            mEndDateView.setText(mEndDateString);
+        }
+    }
+
 }

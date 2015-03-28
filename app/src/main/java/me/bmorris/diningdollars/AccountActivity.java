@@ -9,8 +9,11 @@ import android.support.v4.app.FragmentManager;
 /**
  * Created by bmorris on 3/25/15.
  * Screen to edit the Account information. Hosts a fragment to do all the work.
+ * Imlements the DatePickerCallback interface to handle date updates.
  */
-public class AccountActivity extends FragmentActivity {
+public class AccountActivity extends FragmentActivity
+        implements DatePickerFragment.DatePickerCallback{
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
 
@@ -30,5 +33,10 @@ public class AccountActivity extends FragmentActivity {
             fragment = new AccountFragment();
             fm.beginTransaction().add(R.id.fragmentContainer, fragment).commit();
         }
+    }
+
+    public void updateDateCallback(int year, int month, int day, boolean isStartDate) {
+        AccountFragment frag = (AccountFragment)getSupportFragmentManager().findFragmentById(R.id.fragmentContainer);
+        frag.setDate(year, month, day, isStartDate);
     }
 }
