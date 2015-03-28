@@ -12,8 +12,14 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.TextView;
 
 import org.json.JSONException;
+
+import java.text.DateFormat;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 
 /**
  * Created by bmorris on 3/25/15.
@@ -25,6 +31,13 @@ public class AccountFragment extends Fragment {
      * String constants for Intent Extras
      */
     public static final String BALANCE_EXTRA = "me.bmorris.diningdollars.balance_extra";
+    public static final String START_DATE_EXTRA = "me.bmorris.diningdollars.start_date_extra";
+    public static final String END_DATE_EXTRA = "me.bmorris.diningdollars.end_date_extra";
+
+    /**
+     * Public date format constant to keep parsing/formatting consistent
+     */
+    public static final DateFormat dateFormat = new SimpleDateFormat("MM/DD/yyyy");
 
     /**
      * View fields.
@@ -32,6 +45,8 @@ public class AccountFragment extends Fragment {
      */
     EditText mBalanceEdit;
     Button mSaveButton;
+    TextView mStartDateView;
+    TextView mEndDateView;
 
     /**
      * Singleton for holding account data. (UNUSED)
@@ -39,10 +54,14 @@ public class AccountFragment extends Fragment {
     AccountInfo sAccount;
 
     /**
-     * Field that holds the current account balance. Used both to display balance on the EditText
-     * view and to pass back to the HomeActivity via result.
+     * Fields that hold the current account data. Used both to display on the views and to pass
+     * back to the HomeActivity via result.
      */
     double mBalance;
+    String mStartDateString;
+    String mEndDateString;
+    Date mStartDate;
+    Date mEndDate;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -56,6 +75,24 @@ public class AccountFragment extends Fragment {
         // Default value of -999.99 in case something goes horribly wrong...
         Intent intent = getActivity().getIntent();
         mBalance = intent.getDoubleExtra(BALANCE_EXTRA, -999.99);
+
+        // Get the date strings from the intent. If they're there, parse them into date objects.
+        // If not, it messed up...
+        mStartDateString = intent.getStringExtra(START_DATE_EXTRA);
+        mEndDateString = intent.getStringExtra(END_DATE_EXTRA);
+        Log.i("AccountFragment", "Start/end strings: " + mStartDateString + " " + mEndDateString);
+        if (mStartDateString != null && mEndDateString != null) {
+            try {
+                mStartDate = dateFormat.parse(mStartDateString);
+                mEndDate = dateFormat.parse(mEndDateString);
+            } catch (ParseException pe) {
+                Log.e(getTag(), "Parse error converting date strings to Dates");
+                pe.printStackTrace();
+            }
+        } else {
+            Log.e(getTag(), "Error loading dates from intent");
+        }
+
     }
 
     @Override
@@ -86,6 +123,18 @@ public class AccountFragment extends Fragment {
                 else mBalance = 0.0;
             }
         });
+
+        /**
+         * Start date reference.
+         */
+        mStartDateView = (TextView) v.findViewById(R.id.start_date);
+        mStartDateView.setText(mStartDateString);
+
+        /**
+         * End date reference.
+         */
+        mEndDateView = (TextView) v.findViewById(R.id.end_date);
+        mEndDateView.setText(mEndDateString);
 
         /**
          * Save button reference and listener. Hitting the button will send the balance value as

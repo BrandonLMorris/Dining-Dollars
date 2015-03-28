@@ -15,9 +15,9 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 
-import org.json.JSONException;
-
-import java.io.IOException;
+import java.text.DateFormat;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.Date;
 
 /**
@@ -36,14 +36,17 @@ public class HomeFragment extends Fragment {
     private static final String END_DATE = "end date";
 
     /**
-     * Default value for the account balance.
+     * Default values for the account.
      */
     private static final double DEFAULT_BALANCE = 1000.0;
+    public static final String DEFAULT_START_DATE = "01/01/2015";
+    public static final String DEFAULT_END_DATE = "12/31/2015";
+    private static final DateFormat mDateFormat = new SimpleDateFormat("MM/DD/yyyy");
 
     /**
      * Integer constant for intent to update the account's balance (through the AccountActivity)
      */
-    public static final int UPDATE_BALANCE_REQUEST = 1;
+    public static final int UPDATE_ACCOUNT_REQUEST = 1;
 
     /**
      * View fields
@@ -65,6 +68,8 @@ public class HomeFragment extends Fragment {
      * Values for the account.
      */
     private double mBalance;
+    private String mStartDateString;
+    private String mEndDateString;
     private Date mStartDate;
     private Date mEndDate;
 
@@ -78,6 +83,17 @@ public class HomeFragment extends Fragment {
         SharedPreferences sharedPrefs = getActivity().getPreferences(Context.MODE_PRIVATE);
         mBalance = sharedPrefs.getInt(BALANCE, (int)(DEFAULT_BALANCE*100)) / 100.00;
         // Todo: Decimal part of balance lost between sessions
+
+        // Get the start/end date from SharedPreferences. Use SimpleDateFormat to change from String
+        mStartDateString = sharedPrefs.getString(START_DATE, DEFAULT_START_DATE);
+        mEndDateString = sharedPrefs.getString(END_DATE, DEFAULT_END_DATE);
+        try {
+            mStartDate = mDateFormat.parse(mStartDateString);
+            mEndDate = mDateFormat.parse(mEndDateString);
+        } catch (ParseException pe) {
+            Log.e(getTag(), "Error loading start/end dates");
+            pe.printStackTrace();
+        }
 
     }
 
@@ -130,7 +146,9 @@ public class HomeFragment extends Fragment {
                 // a new balance value.
                 Intent i = new Intent(getActivity(), AccountActivity.class);
                 i.putExtra(AccountFragment.BALANCE_EXTRA, mBalance);
-                startActivityForResult(i, UPDATE_BALANCE_REQUEST);
+                i.putExtra(AccountFragment.START_DATE_EXTRA, mStartDateString);
+                i.putExtra(AccountFragment.END_DATE_EXTRA, mEndDateString);
+                startActivityForResult(i, UPDATE_ACCOUNT_REQUEST);
         }
 
         return super.onOptionsItemSelected(item);
