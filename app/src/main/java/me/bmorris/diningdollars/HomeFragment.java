@@ -18,7 +18,9 @@ import android.widget.TextView;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.Calendar;
 import java.util.Date;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Created by bmorris on 3/15/15.
@@ -32,6 +34,7 @@ public class HomeFragment extends Fragment {
      */
     private static final String ACCOUNT_FILE = "account.json";
     private static final String BALANCE = "balance";
+    private static final String START_BALANCE = "start balance";
     private static final String START_DATE = "start date";
     private static final String END_DATE = "end date";
 
@@ -41,7 +44,7 @@ public class HomeFragment extends Fragment {
     private static final double DEFAULT_BALANCE = 1000.0;
     public static final String DEFAULT_START_DATE = "01/01/2015";
     public static final String DEFAULT_END_DATE = "12/31/2015";
-    private static final DateFormat mDateFormat = new SimpleDateFormat("MM/DD/yyyy");
+    private static final DateFormat mDateFormat = new SimpleDateFormat("MM/dd/yyyy");
 
     /**
      * Integer constant for intent to update the account's balance (through the AccountActivity)
@@ -52,6 +55,7 @@ public class HomeFragment extends Fragment {
      * View fields
      */
     private TextView mBalanceView;
+    private TextView mBudgetBalanceView;
 
     /**
      * Holds singleton for account values. (UNUSED)
@@ -68,10 +72,12 @@ public class HomeFragment extends Fragment {
      * Values for the account.
      */
     private double mBalance;
+    private double mStartBalance;
     private String mStartDateString;
     private String mEndDateString;
     private Date mStartDate;
     private Date mEndDate;
+    private double mBudgetToDate;
 
 
     @Override
@@ -82,7 +88,7 @@ public class HomeFragment extends Fragment {
         // Get the current balance from SharedPreferences. Use the default value if not set up
         SharedPreferences sharedPrefs = getActivity().getPreferences(Context.MODE_PRIVATE);
         mBalance = sharedPrefs.getInt(BALANCE, (int)(DEFAULT_BALANCE*100)) / 100.00;
-        // Todo: Decimal part of balance lost between sessions
+        mStartBalance = sharedPrefs.getInt(START_BALANCE, (int)(DEFAULT_BALANCE*100)) / 100.00;
 
         // Get the start/end date from SharedPreferences. Use SimpleDateFormat to change from String
         mStartDateString = sharedPrefs.getString(START_DATE, DEFAULT_START_DATE);
@@ -94,6 +100,9 @@ public class HomeFragment extends Fragment {
             Log.e(getTag(), "Error loading start/end dates");
             pe.printStackTrace();
         }
+
+        // Use helper method to calculate what the budget says the balance should be
+        mBudgetToDate = calculateBudgetToDate(mStartDate, mEndDate, mStartBalance);
 
     }
 
@@ -111,6 +120,9 @@ public class HomeFragment extends Fragment {
         // Get reference to the text view that holds the balance and set its display
         mBalanceView = (TextView)v.findViewById(R.id.balance_display);
         mBalanceView.setText(String.format("$%.2f", mBalance));
+
+        mBudgetBalanceView = (TextView) v.findViewById(R.id.budget_display);
+        mBudgetBalanceView.setText(String.format("$%.2f", mBudgetToDate));
 
         return v;
     }
@@ -146,6 +158,7 @@ public class HomeFragment extends Fragment {
                 // a new balance value.
                 Intent i = new Intent(getActivity(), AccountActivity.class);
                 i.putExtra(AccountFragment.BALANCE_EXTRA, mBalance);
+                i.putExtra(AccountFragment.START_BALANCE_EXTRA, mStartBalance);
                 i.putExtra(AccountFragment.START_DATE_EXTRA, mStartDateString);
                 i.putExtra(AccountFragment.END_DATE_EXTRA, mEndDateString);
                 startActivityForResult(i, UPDATE_ACCOUNT_REQUEST);
@@ -161,11 +174,26 @@ public class HomeFragment extends Fragment {
 
             // Get the account data via extras, if they exist
             mBalance = data.getDoubleExtra(AccountFragment.BALANCE_EXTRA, -999.99);
+            mStartBalance = data.getDoubleExtra(AccountFragment.START_BALANCE_EXTRA, 0.00);
             if (data.hasExtra(AccountFragment.START_DATE_EXTRA)) {
                 mStartDateString = data.getStringExtra(AccountFragment.START_DATE_EXTRA);
+                try {
+                    mStartDate = mDateFormat.parse(mStartDateString);
+                } catch (ParseException pe) {
+                    Log.e("HomeFragment", "Error parsing the start date from string");
+                    pe.printStackTrace();
+                }
             }
             if (data.hasExtra(AccountFragment.END_DATE_EXTRA)) {
                 mEndDateString = data.getStringExtra(AccountFragment.END_DATE_EXTRA);
+                Log.i("HomeFragment", "End date string received from result: " + mEndDateString);
+                try {
+                    mEndDate = mDateFormat.parse(mEndDateString);
+                    Log.i("HomeFragment", "mEndDate: " + mEndDate);
+                } catch (ParseException pe) {
+                    Log.e("HomeFragment", "Error parsing the end date from string");
+                    pe.printStackTrace();
+                }
             }
 
             updateUI();
@@ -201,26 +229,35 @@ public class HomeFragment extends Fragment {
 
 
     /**
-     * Updates the balance value on the screen based on 'mBalance' value
+     * Updates the elements on the screen based on the current values of the member fields
      */
     public void updateUI() {
         mBalanceView = (TextView) getView().findViewById(R.id.balance_display);
-        mBalanceView.setText(String.format("$%.2f", mBalance));
+        if (mBalanceView != null) mBalanceView.setText(String.format("$%.2f", mBalance));
+
+        mBudgetBalanceView = (TextView) getView().findViewById(R.id.budget_display);
+        if (mBudgetBalanceView != null) {
+            mBudgetToDate = calculateBudgetToDate(mStartDate, mEndDate, mStartBalance);
+            mBudgetBalanceView.setText(String.format("%.2f", mBudgetToDate));
+        }
     }
 
     /**
      * Saves the account data to disk in SystemPreferences. To be used: Serailize the data into JSON
      * here
      */
-    public void saveAccountData() {
+    private void saveAccountData() {
         SharedPreferences sharedPref = getActivity().getPreferences(Context.MODE_PRIVATE);
         SharedPreferences.Editor editor = sharedPref.edit();
         editor.putInt(BALANCE, (int)(mBalance*100));
+        editor.putInt(START_BALANCE, (int)(mStartBalance*100));
+        editor.putInt(START_DATE, (int)(mStartBalance*100));
         editor.putString(START_DATE, mStartDateString);
         editor.putString(END_DATE, mEndDateString);
 
-        //IntelliJ wants me to use apply() instead of commit
+        //IntelliJ wants me to use apply() instead of commit()
         editor.apply();
+
 //        DiningDollarsJSONSerializer serializer = new DiningDollarsJSONSerializer(getActivity(), ACCOUNT_FILE);
 //        try {
 //            serializer.saveAccountBalance(sAccountInfo.toJSON());
@@ -229,6 +266,22 @@ public class HomeFragment extends Fragment {
 //            Log.d(getTag(), "Error saving balance to JSON file");
 //            e.printStackTrace();
 //        }
+    }
+
+    /**
+     * Helper method to calculate the budget balance given the start and end dates and the current
+     * balance.
+     * @param start the start date for the semester
+     * @param end the end date for the semester
+     * @param startBalance the balance at the start of the semester
+     * @return the balance at the current date if budgeted evenly
+     */
+    private double calculateBudgetToDate(Date start, Date end, double startBalance) {
+        long diff = mStartDate.getTime() - mEndDate.getTime();
+        long totalDays = TimeUnit.DAYS.convert(diff, TimeUnit.MILLISECONDS);
+        double budgetPerDay = mStartBalance / totalDays;
+        long daysLeft = TimeUnit.DAYS.convert(Calendar.getInstance().getTime().getTime() - mEndDate.getTime() , TimeUnit.MILLISECONDS);
+        return daysLeft * budgetPerDay;
     }
 
 

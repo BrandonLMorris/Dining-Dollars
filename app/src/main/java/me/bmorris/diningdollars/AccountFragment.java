@@ -32,19 +32,21 @@ public class AccountFragment extends Fragment {
      * String constants for Intent Extras
      */
     public static final String BALANCE_EXTRA = "me.bmorris.diningdollars.balance_extra";
+    public static final String START_BALANCE_EXTRA = "me.bmorris.diningdollar.start_balance_extra";
     public static final String START_DATE_EXTRA = "me.bmorris.diningdollars.start_date_extra";
     public static final String END_DATE_EXTRA = "me.bmorris.diningdollars.end_date_extra";
 
     /**
      * Public date format constant to keep parsing/formatting consistent
      */
-    public static final DateFormat dateFormat = new SimpleDateFormat("MM/DD/yyyy");
+    public static final DateFormat dateFormat = new SimpleDateFormat("MM/dd/yyyy");
 
     /**
      * View fields.
      * To add: Start/end date fields or pickers or something
      */
     EditText mBalanceEdit;
+    EditText mStartBalanceEdit;
     Button mSaveButton;
     TextView mStartDateView;
     TextView mEndDateView;
@@ -61,6 +63,7 @@ public class AccountFragment extends Fragment {
      * back to the HomeActivity via result.
      */
     double mBalance;
+    double mStartBalance;
     String mStartDateString;
     String mEndDateString;
     Date mStartDate;
@@ -78,6 +81,7 @@ public class AccountFragment extends Fragment {
         // Default value of -999.99 in case something goes horribly wrong...
         Intent intent = getActivity().getIntent();
         mBalance = intent.getDoubleExtra(BALANCE_EXTRA, -999.99);
+        mStartBalance = intent.getDoubleExtra(START_BALANCE_EXTRA, -999.99);
 
         // Get the date strings from the intent. If they're there, parse them into date objects.
         // If not, it messed up...
@@ -124,6 +128,33 @@ public class AccountFragment extends Fragment {
                 // If empty string, set balance to 0.00 to avoid a parseDouble() exception
                 if(s.length() > 0) mBalance = Double.parseDouble(s.toString());
                 else mBalance = 0.0;
+            }
+        });
+
+        /**
+         * The reference and listener for the start balance EditText. Text is set to the
+         * 'mStartBalance' value and updated to match text inputted.
+         */
+        mStartBalanceEdit = (EditText) v.findViewById(R.id.start_balance_edit);
+        mStartBalanceEdit.setText(String.format("%.2f", mStartBalance));
+        mStartBalanceEdit.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+                // This space is intentionally left blank
+            }
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+                // This space is intentionally left blank
+            }
+
+            @Override
+            public void afterTextChanged(Editable s) {
+                if (s.length() > 0) {
+                    mStartBalance = Double.parseDouble(s.toString());
+                } else {
+                    mStartBalance = 0.0;
+                }
             }
         });
 
@@ -199,6 +230,7 @@ public class AccountFragment extends Fragment {
 
         // Put the account values as extra into the intent
         result.putExtra(BALANCE_EXTRA, mBalance);
+        result.putExtra(START_BALANCE_EXTRA, mStartBalance);
         result.putExtra(START_DATE_EXTRA, mStartDateString);
         result.putExtra(END_DATE_EXTRA, mEndDateString);
 
