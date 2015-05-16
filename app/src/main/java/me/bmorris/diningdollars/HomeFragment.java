@@ -87,6 +87,7 @@ public class HomeFragment extends Fragment {
 
         // Get the current balance from SharedPreferences. Use the default value if not set up
         SharedPreferences sharedPrefs = getActivity().getPreferences(Context.MODE_PRIVATE);
+
         mBalance = sharedPrefs.getInt(BALANCE, (int)(DEFAULT_BALANCE*100)) / 100.00;
         mStartBalance = sharedPrefs.getInt(START_BALANCE, (int)(DEFAULT_BALANCE*100)) / 100.00;
 
@@ -243,7 +244,7 @@ public class HomeFragment extends Fragment {
     }
 
     /**
-     * Saves the account data to disk in SystemPreferences. To be used: Serailize the data into JSON
+     * Saves the account data to disk in SystemPreferences. To be used: Serialize the data into JSON
      * here
      */
     private void saveAccountData() {

@@ -10,5 +10,11 @@
     <string name="edit">Edit</string>
     <string name="starting_balance">Starting Balance</string>
     <string name="budget_to_date">Budget to Date</string>
+    <string name="update">Update Online</string>
+    <string name="account_username">Account Username</string>
+    <string name="update_account">Update Account</string>
+    <string name="account_info">Account Information</string>
+    <string name="username">Username</string>
+    <string name="password">Password</string>
 
 </resources>
