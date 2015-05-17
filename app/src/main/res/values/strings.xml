@@ -16,5 +16,9 @@
     <string name="account_info">Account Information</string>
     <string name="username">Username</string>
     <string name="password">Password</string>
+    <string name="disclaimer_title">Disclaimer</string>
+    <string name="disclaimer_message">This app stores your auburn.managemyid.com password locally and does NOT encrypt it. No guarantee whatsoever is made about the security of your password. Proceed at your own risk.</string>
+    <string name="ok">Ok</string>
+    <string name="enable_online">Enable Online Connectivity</string>
 
 </resources>

@@ -1,7 +1,9 @@
 package me.bmorris.diningdollars;
 
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.SharedPreferences;
 import android.os.AsyncTask;
 import android.support.v4.app.DialogFragment;
@@ -12,10 +14,13 @@ import android.text.Editable;
 import android.text.TextWatcher;
 import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.CompoundButton;
 import android.widget.EditText;
+import android.widget.Switch;
 import android.widget.TextView;
 
 import org.json.JSONException;
@@ -46,6 +51,7 @@ public class AccountFragment extends Fragment {
     // String constant for the account username from SharedPreferences
     public static final String ACCOUNT_USERNAME = "account_username";
     public static final String ACCOUNT_PASSWORD = "account_password";
+    public static final String ONLINE_ENABLED = "online_enabled";
 
     /**
      * Public date format constant to keep parsing/formatting consistent
@@ -56,21 +62,20 @@ public class AccountFragment extends Fragment {
      * View fields.
      * To add: Start/end date fields or pickers or something
      */
+    Switch mOnlineSwitch;
     EditText mUsernameEdit;
     EditText mPasswordEdit;
     EditText mBalanceEdit;
     Button mUpdateButton;
     EditText mStartBalanceEdit;
     Button mSaveButton;
-    TextView mStartDateView;
     TextView mEndDateView;
-    Button mStartDateEdit;
     Button mEndDateEdit;
 
     /**
      * Singleton for holding account data. (UNUSED)
      */
-    AccountInfo sAccount;
+    //AccountInfo sAccount;
 
     /**
      * Fields that hold the current account data. Used both to display on the views and to pass
@@ -82,6 +87,7 @@ public class AccountFragment extends Fragment {
     String mEndDateString;
     Date mStartDate;
     Date mEndDate;
+    Boolean mOnlineEnabled;
 
     // Store the username and password of the account
     String mUsername;
@@ -121,13 +127,36 @@ public class AccountFragment extends Fragment {
         // Get the account username from SystemPreferences
         SharedPreferences sharedPrefs = getActivity().getPreferences(Context.MODE_PRIVATE);
         mUsername = sharedPrefs.getString(ACCOUNT_USERNAME, null);
-        mPassword = sharedPrefs.getString(ACCOUNT_PASSWORD, null);
+        mPassword = sharedPrefs.getString(ACCOUNT_PASSWORD, "");
+
+        // Obtain whether online connectivity has been enabled
+        mOnlineEnabled = sharedPrefs.getBoolean(ONLINE_ENABLED, false);
 
     }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup parent, Bundle savedInstanceState) {
         View v = inflater.inflate(R.layout.fragment_account, parent, false);
+
+        /**
+         * Reference and listener for the online switch. Upon enabling, user is prompted with
+         * disclaimer and the username EditText, password EditText, and the update online
+         * button become enabled (the enable/disable handled at bottom of onCreateView method, after
+         * member references have been set).
+         */
+        mOnlineSwitch = (Switch) v.findViewById(R.id.online_switch);
+        mOnlineSwitch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                if (isChecked) {
+                    displayDisclaimer();
+                    mOnlineEnabled = true;
+                } else {
+                    mOnlineEnabled = false;
+                }
+            }
+        });
+
 
         /**
          * Reference and listener for the account username EditText. If username
@@ -150,7 +179,7 @@ public class AccountFragment extends Fragment {
 
             @Override
             public void afterTextChanged(Editable s) {
-                if (s.toString().length() > 0) {
+                if (s.length() > 0) {
                     mUsername = s.toString();
                 }
             }
@@ -165,10 +194,27 @@ public class AccountFragment extends Fragment {
         if (mPassword != null) {
             mPasswordEdit.setText(mPassword);
         }
-        mPasswordEdit.setOnClickListener(new View.OnClickListener() {
+        mPasswordEdit.setOnTouchListener(new View.OnTouchListener() {
             @Override
-            public void onClick(View v) {
+            public boolean onTouch(View v, MotionEvent motionEvent) {
                 mPasswordEdit.setText("");
+
+                // Display the disclaimer
+//                AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
+//
+//                builder.setTitle(R.string.disclaimer_title);
+//                builder.setMessage(R.string.disclaimer_message);
+//                builder.setPositiveButton(R.string.ok, new DialogInterface.OnClickListener() {
+//                    @Override
+//                    public void onClick(DialogInterface dialog, int which) {
+//                        // This is intentionally left blank
+//                    }
+//                });
+//
+//                AlertDialog dialog = builder.create();
+//                dialog.show();
+
+                return true;
             }
         });
         mPasswordEdit.addTextChangedListener(new TextWatcher() {
@@ -184,7 +230,9 @@ public class AccountFragment extends Fragment {
 
             @Override
             public void afterTextChanged(Editable s) {
-                if (!(s.toString().length() == 0)) {
+                if (s.toString().isEmpty()) {
+                    mPassword = null;
+                } else {
                     mPassword = s.toString();
                 }
             }
@@ -290,6 +338,12 @@ public class AccountFragment extends Fragment {
         });
 
 
+        // Enable/disable username, password, and update online button based on value of
+        // mOnlineEnabled
+        mUsernameEdit.setEnabled(mOnlineEnabled);
+        mPasswordEdit.setEnabled(mOnlineEnabled);
+        mUpdateButton.setEnabled(mOnlineEnabled);
+
         return v;
     }
 
@@ -326,7 +380,6 @@ public class AccountFragment extends Fragment {
         // "Always leave things cleaner than when you found them."
         getActivity().finish();
     }
-
 
 
     /**
@@ -391,6 +444,25 @@ public class AccountFragment extends Fragment {
         }
     }
 
+    /**
+     * Presents a dialog that displays the disclaimer to the user.
+     */
+    private void displayDisclaimer() {
+        // Display the disclaimer
+        AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
+
+        builder.setTitle(R.string.disclaimer_title);
+        builder.setMessage(R.string.disclaimer_message);
+        builder.setPositiveButton(R.string.ok, new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                // This is intentionally left blank
+            }
+        });
+
+        AlertDialog dialog = builder.create();
+        dialog.show();
+    }
 
     /**
      * Writes the account username and password to SharedPreferences
@@ -406,6 +478,8 @@ public class AccountFragment extends Fragment {
         if (mPassword != null) {
             editor.putString(ACCOUNT_PASSWORD, mPassword);
         }
+
+        editor.putBoolean(ONLINE_ENABLED, mOnlineEnabled);
 
         editor.apply();
 
