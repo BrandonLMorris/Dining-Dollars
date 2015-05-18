@@ -69,18 +69,21 @@ public class AccountFragment extends Fragment {
     Button mUpdateButton;
     EditText mStartBalanceEdit;
     Button mSaveButton;
+    TextView mStartDateView;
     TextView mEndDateView;
+    Button mStartDateEdit;
     Button mEndDateEdit;
 
     /**
      * Singleton for holding account data. (UNUSED)
      */
-    //AccountInfo sAccount;
+    AccountInfo sAccount;
 
     /**
      * Fields that hold the current account data. Used both to display on the views and to pass
      * back to the HomeActivity via result.
      */
+    /*
     double mBalance;
     double mStartBalance;
     String mStartDateString;
@@ -88,28 +91,34 @@ public class AccountFragment extends Fragment {
     Date mStartDate;
     Date mEndDate;
     Boolean mOnlineEnabled;
+    */
 
     // Store the username and password of the account
+    /*
     String mUsername;
     String mPassword;
+    */
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
 
         super.onCreate(savedInstanceState);
 
-        // To use: get account data singleton object
-        //sAccount = AccountInfo.get(getActivity());
+        // Set singleton object for account dat
+        sAccount = AccountInfo.get(getActivity());
 
         // Get the balance from the Intent that started this (host's) activity.
         // Default value of -999.99 in case something goes horribly wrong...
+        /*
         Intent intent = getActivity().getIntent();
         mBalance = intent.getDoubleExtra(BALANCE_EXTRA, -999.99);
         mStartBalance = intent.getDoubleExtra(START_BALANCE_EXTRA, -999.99);
+        */
 
+        /*
         // Get the date strings from the intent. If they're there, parse them into date objects.
-        // If not, it messed up...
-        mStartDateString = intent.getStringExtra(START_DATE_EXTRA);
+         If not, it messed up...
+        //mStartDateString = intent.getStringExtra(START_DATE_EXTRA);
         mEndDateString = intent.getStringExtra(END_DATE_EXTRA);
         //Log.i("AccountFragment", "Start/end strings: " + mStartDateString + " " + mEndDateString);
         if (mStartDateString != null && mEndDateString != null) {
@@ -123,14 +132,17 @@ public class AccountFragment extends Fragment {
         } else {
             Log.e(getTag(), "Error loading dates from intent");
         }
+        */
 
         // Get the account username from SystemPreferences
+        /*
         SharedPreferences sharedPrefs = getActivity().getPreferences(Context.MODE_PRIVATE);
         mUsername = sharedPrefs.getString(ACCOUNT_USERNAME, null);
         mPassword = sharedPrefs.getString(ACCOUNT_PASSWORD, "");
+        */
 
         // Obtain whether online connectivity has been enabled
-        mOnlineEnabled = sharedPrefs.getBoolean(ONLINE_ENABLED, false);
+        //mOnlineEnabled = sharedPrefs.getBoolean(ONLINE_ENABLED, false);
 
     }
 
@@ -144,6 +156,7 @@ public class AccountFragment extends Fragment {
          * button become enabled (the enable/disable handled at bottom of onCreateView method, after
          * member references have been set).
          */
+        /*
         mOnlineSwitch = (Switch) v.findViewById(R.id.online_switch);
         mOnlineSwitch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
@@ -156,6 +169,7 @@ public class AccountFragment extends Fragment {
                 }
             }
         });
+        */
 
 
         /**
@@ -163,8 +177,8 @@ public class AccountFragment extends Fragment {
          * is saved fill it in, otherwise leave with hints.
          */
         mUsernameEdit = (EditText) v.findViewById(R.id.username_edit);
-        if (mUsername != null) {
-            mUsernameEdit.setText(mUsername);
+        if (sAccount.getUsername() != null) {
+            mUsernameEdit.setText(sAccount.getUsername());
         }
         mUsernameEdit.addTextChangedListener(new TextWatcher() {
             @Override
@@ -180,7 +194,7 @@ public class AccountFragment extends Fragment {
             @Override
             public void afterTextChanged(Editable s) {
                 if (s.length() > 0) {
-                    mUsername = s.toString();
+                    sAccount.setUsername(s.toString());
                 }
             }
         });
@@ -191,29 +205,13 @@ public class AccountFragment extends Fragment {
          * by the user. Self-fills with the saved password if non-null, hints otherwise.
          */
         mPasswordEdit = (EditText) v.findViewById(R.id.password_edit);
-        if (mPassword != null) {
-            mPasswordEdit.setText(mPassword);
+        if (sAccount.getPassword() != null) {
+            mPasswordEdit.setText(sAccount.getPassword());
         }
         mPasswordEdit.setOnTouchListener(new View.OnTouchListener() {
             @Override
             public boolean onTouch(View v, MotionEvent motionEvent) {
                 mPasswordEdit.setText("");
-
-                // Display the disclaimer
-//                AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
-//
-//                builder.setTitle(R.string.disclaimer_title);
-//                builder.setMessage(R.string.disclaimer_message);
-//                builder.setPositiveButton(R.string.ok, new DialogInterface.OnClickListener() {
-//                    @Override
-//                    public void onClick(DialogInterface dialog, int which) {
-//                        // This is intentionally left blank
-//                    }
-//                });
-//
-//                AlertDialog dialog = builder.create();
-//                dialog.show();
-
                 return true;
             }
         });
@@ -231,9 +229,10 @@ public class AccountFragment extends Fragment {
             @Override
             public void afterTextChanged(Editable s) {
                 if (s.toString().isEmpty()) {
-                    mPassword = null;
+                    sAccount.setPassword("");
+                    mPasswordEdit.setText("");
                 } else {
-                    mPassword = s.toString();
+                    sAccount.setPassword(s.toString());
                 }
             }
         });
@@ -244,7 +243,7 @@ public class AccountFragment extends Fragment {
          * start and 'mBalance' is updated to reflect the inputted value.
          */
         mBalanceEdit = (EditText) v.findViewById(R.id.balance_edit);
-        mBalanceEdit.setText(String.format("%.2f", mBalance));
+        mBalanceEdit.setText(String.format("%.2f", sAccount.getBalance()));
         mBalanceEdit.addTextChangedListener(new TextWatcher() {
             @Override
             public void beforeTextChanged(CharSequence s, int start, int count, int after) {
@@ -259,8 +258,11 @@ public class AccountFragment extends Fragment {
             @Override
             public void afterTextChanged(Editable s) {
                 // If empty string, set balance to 0.00 to avoid a parseDouble() exception
-                if(s.length() > 0) mBalance = Double.parseDouble(s.toString());
-                else mBalance = 0.0;
+                if(s.length() > 0) sAccount.setBalance(Double.parseDouble(s.toString()));
+                else {
+                    sAccount.setBalance(0.0);
+                    mBalanceEdit.setText("0.00");
+                }
             }
         });
 
@@ -272,8 +274,8 @@ public class AccountFragment extends Fragment {
         mUpdateButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (mUsername != null && mPassword != null) {
-                    new BalanceFetchTask().execute(mUsername, mPassword);
+                if (sAccount.getUsername() != null && sAccount.getPassword() != null) {
+                    new BalanceFetchTask().execute(sAccount.getUsername(), sAccount.getPassword());
                     updateUI();
                 }
             }
@@ -285,7 +287,7 @@ public class AccountFragment extends Fragment {
          * 'mStartBalance' value and updated to match text inputted.
          */
         mStartBalanceEdit = (EditText) v.findViewById(R.id.start_balance_edit);
-        mStartBalanceEdit.setText(String.format("%.2f", mStartBalance));
+        mStartBalanceEdit.setText(String.format("%.2f", sAccount.getStartBalance()));
         mStartBalanceEdit.addTextChangedListener(new TextWatcher() {
             @Override
             public void beforeTextChanged(CharSequence s, int start, int count, int after) {
@@ -300,17 +302,33 @@ public class AccountFragment extends Fragment {
             @Override
             public void afterTextChanged(Editable s) {
                 if (s.length() > 0) {
-                    mStartBalance = Double.parseDouble(s.toString());
+                    sAccount.setStartBalance(Double.parseDouble(s.toString()));
                 } else {
-                    mStartBalance = 0.0;
+                    sAccount.setStartBalance(0.0);
                 }
             }
         });
 
+         /** Start date text reference */
+        mStartDateView = (TextView) v.findViewById(R.id.start_date);
+        mStartDateView.setText(AccountInfo.DATE_FORMAT.format(sAccount.getStartDate()));
+
+        /**
+         * Start date edit button reference. Set on-click listener to launch a date picker dialog
+         * to adjust the date.
+         */
+        mStartDateEdit = (Button) v.findViewById(R.id.edit_start_state);
+        mStartDateEdit.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                DialogFragment newFragment = DatePickerFragment.newInstance(true);
+                newFragment.show(getActivity().getSupportFragmentManager(), "startDatePicker");
+            }
+        });
 
         /** End date text reference. */
         mEndDateView = (TextView) v.findViewById(R.id.end_date);
-        mEndDateView.setText(mEndDateString);
+        mEndDateView.setText(AccountInfo.DATE_FORMAT.format(sAccount.getStartDate()));
 
         /**
          * End date edit button reference. Set on-click listener to launch a date picker dialog
@@ -340,9 +358,11 @@ public class AccountFragment extends Fragment {
 
         // Enable/disable username, password, and update online button based on value of
         // mOnlineEnabled
+        /*
         mUsernameEdit.setEnabled(mOnlineEnabled);
         mPasswordEdit.setEnabled(mOnlineEnabled);
         mUpdateButton.setEnabled(mOnlineEnabled);
+        */
 
         return v;
     }
@@ -369,10 +389,10 @@ public class AccountFragment extends Fragment {
         Intent result = new Intent();
 
         // Put the account values as extra into the intent
-        result.putExtra(BALANCE_EXTRA, mBalance);
-        result.putExtra(START_BALANCE_EXTRA, mStartBalance);
-        result.putExtra(START_DATE_EXTRA, mStartDateString);
-        result.putExtra(END_DATE_EXTRA, mEndDateString);
+        result.putExtra(BALANCE_EXTRA, sAccount.getBalance());
+        result.putExtra(START_BALANCE_EXTRA, sAccount.getStartBalance());
+        result.putExtra(START_DATE_EXTRA, AccountInfo.DATE_FORMAT.format(sAccount.getStartDate()));
+        result.putExtra(END_DATE_EXTRA, AccountInfo.DATE_FORMAT.format(sAccount.getEndDate()));
 
         // Set the intent's result as OK, and ship it back
         getActivity().setResult(Activity.RESULT_OK, result);
@@ -397,22 +417,24 @@ public class AccountFragment extends Fragment {
         // Set the date field based on which date was updated
         if (isStartDay) {
             // Build new string from arguments
-            mStartDateString = (month+1) + "/" + day + "/" + year;
+            //mStartDateString = (month+1) + "/" + day + "/" + year;
+            String tempStart = (month+1) + "/" + day + "/" + year;
 
             // Try parsing string into date, catch exception if fails
             try {
-                mStartDate = dateFormat.parse(mStartDateString);
+                sAccount.setStartDate(AccountInfo.DATE_FORMAT.parse(tempStart));
             } catch (ParseException pe) {
                 Log.e("AccountFragment", "Error updating date: unable to parse mStartDateString");
                 pe.printStackTrace();
             }
         } else {
             // Build new string from arguments
-            mEndDateString = (month+1) + "/" + day + "/" + year;
+            //mEndDateString = (month+1) + "/" + day + "/" + year;
+            String tempEnd = (month+1) + "/" + day + "/" + year;
 
             // Try parsing string into date, catch exception if fails
             try {
-                mEndDate = dateFormat.parse(mEndDateString);
+                sAccount.setEndDate(AccountInfo.DATE_FORMAT.parse(tempEnd));
             } catch (ParseException pe) {
                 Log.e("AccountFragment", "Error updating date: unable to parse mEndDateString");
             }
@@ -435,12 +457,14 @@ public class AccountFragment extends Fragment {
         // Null check the view object to avoid NullPointerException
         if (v != null) {
             // Update both text fields
+            mStartDateView = (TextView) v.findViewById(R.id.start_date);
+            mStartDateView.setText(AccountInfo.DATE_FORMAT.format(sAccount.getStartDate()));
 
             mEndDateView = (TextView) v.findViewById(R.id.end_date);
-            mEndDateView.setText(mEndDateString);
+            mEndDateView.setText(AccountInfo.DATE_FORMAT.format(sAccount.getEndDate()));
 
             mBalanceEdit = (EditText) v.findViewById(R.id.balance_edit);
-            mBalanceEdit.setText(Double.toString(mBalance));
+            mBalanceEdit.setText(Double.toString(sAccount.getBalance()));
         }
     }
 
@@ -471,15 +495,15 @@ public class AccountFragment extends Fragment {
         SharedPreferences sharedPrefs = getActivity().getPreferences(Context.MODE_PRIVATE);
         SharedPreferences.Editor editor = sharedPrefs.edit();
 
-        if (mUsername != null) {
-            editor.putString(ACCOUNT_USERNAME, mUsername);
+        if (sAccount.getUsername() != null) {
+            editor.putString(ACCOUNT_USERNAME, sAccount.getUsername());
         }
 
-        if (mPassword != null) {
-            editor.putString(ACCOUNT_PASSWORD, mPassword);
+        if (sAccount.getPassword() != null) {
+            editor.putString(ACCOUNT_PASSWORD, sAccount.getPassword());
         }
 
-        editor.putBoolean(ONLINE_ENABLED, mOnlineEnabled);
+        //editor.putBoolean(ONLINE_ENABLED, mOnlineEnabled);
 
         editor.apply();
 
@@ -533,7 +557,7 @@ public class AccountFragment extends Fragment {
 
         protected void onPostExecute(Double result) {
             Log.i("BalanceFetcherTask.onPostExecute()", "Result: " + result);
-            mBalance = result;
+            sAccount.setBalance(result);
             Log.i("BalanceFetcherTask.onPostExecute()", "mBalance = " + result);
         }
     }
